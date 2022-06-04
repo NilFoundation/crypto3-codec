@@ -89,7 +89,7 @@ set_target_properties(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} PROPERTIES
 set_target_properties(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern PROPERTIES
                       EXPORT_NAME ${CURRENT_PROJECT_NAME}
                       CXX_STANDARD 17
-                      CXX_STANDARD_REQIURED TRUE)
+                      CXX_STANDARD_REQUIRED TRUE)
 
 target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE
                       $<$<BOOL:${CRYPTO3_CODEC_BASE58}>:${CMAKE_WORKSPACE_NAME}::multiprecision>
@@ -113,8 +113,7 @@ target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_exter
 
                            ${Boost_INCLUDE_DIRS})
 
-cm_deploy(TARGETS
-          ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
+cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
           ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern
 
           INCLUDE include
