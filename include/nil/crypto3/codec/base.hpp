@@ -41,6 +41,7 @@
 
 #include <boost/exception/exception.hpp>
 #include <boost/exception/info.hpp>
+#include <boost/none_t.hpp>
 #include <boost/throw_exception.hpp>
 
 namespace nil {
@@ -51,6 +52,26 @@ namespace nil {
                 struct static_range;
             }
 
+            template<std::size_t Version = 0, typename = detail::static_range<(Version == 0)>>
+            struct base_encode_preprocessor {
+
+            };
+
+            template<std::size_t Version = 0, typename = detail::static_range<(Version == 0)>>
+            struct base_encode_finalizer {
+
+            };
+
+            template<std::size_t Version = 0, typename = detail::static_range<(Version == 0)>>
+            struct base_decode_preprocessor {
+
+            };
+
+            template<std::size_t Version = 0, typename = detail::static_range<(Version == 0)>>
+            struct base_decode_finalizer {
+
+            };
+
             /*!
              * @brief Base encoder preprocessor functor
              * @ingroup codec
@@ -58,8 +79,8 @@ namespace nil {
              *
              * @note This particular implementation gets selected with Version == 58.
              */
-            template<std::size_t Version, typename = detail::static_range<true>>
-            struct base_encode_preprocessor {
+            template<std::size_t Version>
+            struct base_encode_preprocessor<Version, detail::static_range<!(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -87,8 +108,8 @@ namespace nil {
              *
              * @note This particular implementation gets selected with Version == 58.
              */
-            template<std::size_t Version, typename = detail::static_range<true>>
-            struct base_encode_finalizer {
+            template<std::size_t Version>
+            struct base_encode_finalizer<Version, detail::static_range<!(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -123,7 +144,7 @@ namespace nil {
              * @note This particular implementation gets selected with Version != 58.
              */
             template<std::size_t Version>
-            struct base_encode_preprocessor<Version, detail::static_range<!(Version % 32)>> {
+            struct base_encode_preprocessor<Version, detail::static_range<(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 base_encode_preprocessor()  {}
@@ -138,7 +159,7 @@ namespace nil {
              * @tparam Version
              */
             template<std::size_t Version>
-            struct base_encode_finalizer<Version, detail::static_range<!(Version % 32)>> {
+            struct base_encode_finalizer<Version, detail::static_range<(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -169,8 +190,8 @@ namespace nil {
              * @ingroup codec
              * @tparam Version
              */
-            template<std::size_t Version, typename = detail::static_range<true>>
-            struct base_decode_preprocessor {
+            template<std::size_t Version>
+            struct base_decode_preprocessor<Version, detail::static_range<!(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -192,7 +213,7 @@ namespace nil {
             };
 
             template<std::size_t Version>
-            struct base_decode_preprocessor<Version, detail::static_range<!(Version % 32)>> {
+            struct base_decode_preprocessor<Version, detail::static_range<(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 base_decode_preprocessor() { }
@@ -210,8 +231,8 @@ namespace nil {
              *
              * @note Finalizer is implemented under assumption it gets applied to the byte storage
              */
-            template<std::size_t Version, typename = detail::static_range<true>>
-            struct base_decode_finalizer {
+            template<std::size_t Version>
+            struct base_decode_finalizer<Version, detail::static_range<!(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -239,7 +260,7 @@ namespace nil {
             };
 
             template<std::size_t Version>
-            struct base_decode_finalizer<Version, detail::static_range<!(Version % 32)>> {
+            struct base_decode_finalizer<Version, detail::static_range<(Version % 32)>> {
                 typedef detail::base_policy<Version> policy_type;
 
                 /*!
@@ -264,15 +285,19 @@ namespace nil {
                 std::size_t remaining_bits;
             };
 
-#ifdef CRYPTO3_CODEC_BASE58
+            template<std::size_t Version = 0, typename = detail::static_range<(Version == 0)>>
+            class base {
+
+            };
+
             /*!
              * @brief Base codec implements Base-family encoding. Meets the requirements of Codec.
              * @ingroup codec
              * @tparam Version Base encoder version selector. Available values are: 32, 58, 64
              * @note This particular implementation gets resolved for base58
              */
-            template<std::size_t Version, typename = detail::static_range<true>>
-            class base {
+            template<std::size_t Version>
+            class base<Version, detail::static_range<!(Version % 32)>> {
                 typedef typename detail::base_policy<Version> policy_type;
 
             public:
@@ -332,8 +357,6 @@ namespace nil {
                 };
             };
 
-#endif
-
             /*!
              * @brief Base codec implements Base-family encoding. Meets the requirements of Codec.
              * @ingroup codec
@@ -341,7 +364,7 @@ namespace nil {
              * @note This particular implementation is defined for base32 and base64
              */
             template<std::size_t Version>
-            class base<Version, detail::static_range<!(Version % 32)>> {
+            class base<Version, detail::static_range<(Version % 32)>> {
                 typedef typename detail::base_policy<Version> policy_type;
 
             public:

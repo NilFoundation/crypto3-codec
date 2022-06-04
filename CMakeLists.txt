@@ -66,7 +66,8 @@ list(APPEND ${CURRENT_PROJECT_NAME}_PUBLIC_HEADERS
 
      include/nil/crypto3/codec/adaptor/coded.hpp)
 
-list(APPEND ${CURRENT_PROJECT_NAME}_UNGROUPED_SOURCES)
+list(APPEND ${CURRENT_PROJECT_NAME}_UNGROUPED_SOURCES
+     src/extern.cpp)
 
 list(APPEND ${CURRENT_PROJECT_NAME}_HEADERS
      ${${CURRENT_PROJECT_NAME}_PUBLIC_HEADERS})
@@ -77,6 +78,7 @@ list(APPEND ${CURRENT_PROJECT_NAME}_SOURCES
 cm_setup_version(VERSION 0.1.0 PREFIX ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME})
 
 add_library(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE)
+add_library(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern ${${CURRENT_PROJECT_NAME}_SOURCES})
 
 if(CRYPTO3_CODEC_BASE58)
     target_compile_definitions(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE CRYPTO3_CODEC_BASE58)
@@ -84,8 +86,17 @@ endif()
 
 set_target_properties(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} PROPERTIES
                       EXPORT_NAME ${CURRENT_PROJECT_NAME})
+set_target_properties(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern PROPERTIES
+                      EXPORT_NAME ${CURRENT_PROJECT_NAME}
+                      CXX_STANDARD 17
+                      CXX_STANDARD_REQIURED TRUE)
 
 target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTERFACE
+                      $<$<BOOL:${CRYPTO3_CODEC_BASE58}>:${CMAKE_WORKSPACE_NAME}::multiprecision>
+
+                      ${Boost_LIBRARIES})
+
+target_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern
                       $<$<BOOL:${CRYPTO3_CODEC_BASE58}>:${CMAKE_WORKSPACE_NAME}::multiprecision>
 
                       ${Boost_LIBRARIES})
@@ -96,7 +107,16 @@ target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME} INTER
 
                            ${Boost_INCLUDE_DIRS})
 
-cm_deploy(TARGETS ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
+target_include_directories(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern PRIVATE
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+
+                           ${Boost_INCLUDE_DIRS})
+
+cm_deploy(TARGETS
+          ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
+          ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern
+
           INCLUDE include
           NAMESPACE ${CMAKE_WORKSPACE_NAME}::)
 
