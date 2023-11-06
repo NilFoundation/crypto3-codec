@@ -46,6 +46,8 @@
 
 #include <nil/crypto3/codec/base.hpp>
 
+#include <nil/crypto3/codec/extern/codec.h>
+
 using namespace nil::crypto3::codec;
 using namespace nil::crypto3;
 
@@ -72,13 +74,13 @@ boost::property_tree::ptree base_data(const char *child_name) {
 
 BOOST_AUTO_TEST_SUITE(base32_codec_data_driven_test_suite)
 
-    BOOST_DATA_TEST_CASE(base32_single_range_adaptor_encode, base_data("base_32"), array_element) {
-        std::string enc = array_element.first | adaptors::encoded<base<32>>;
-        std::string dec = array_element.second.data() | adaptors::decoded<base<32>>;
+BOOST_DATA_TEST_CASE(base32_single_range_adaptor_encode, base_data("base_32"), array_element) {
+    std::string enc = array_element.first | adaptors::encoded<base<32>>;
+    std::string dec = array_element.second.data() | adaptors::decoded<base<32>>;
 
-        BOOST_CHECK_EQUAL(enc, array_element.second.data());
-        BOOST_CHECK_EQUAL(dec, array_element.first.data());
-    }
+    BOOST_CHECK_EQUAL(enc, array_element.second.data());
+    BOOST_CHECK_EQUAL(dec, array_element.first.data());
+}
 
 BOOST_DATA_TEST_CASE(base32_single_range_encode, base_data("base_32"), array_element) {
     std::string out = encode<base<32>>(array_element.first);
@@ -186,13 +188,13 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(base58_codec_data_driven_test_suite)
 
-    BOOST_DATA_TEST_CASE(base58_single_range_adaptor_encode, base_data("base_58"), array_element) {
-        std::string enc = array_element.first | adaptors::encoded<base<58>>;
-        std::string dec = array_element.second.data() | adaptors::decoded<base<58>>;
+BOOST_DATA_TEST_CASE(base58_single_range_adaptor_encode, base_data("base_58"), array_element) {
+    std::string enc = array_element.first | adaptors::encoded<base<58>>;
+    std::string dec = array_element.second.data() | adaptors::decoded<base<58>>;
 
-        BOOST_CHECK_EQUAL(enc, array_element.second.data());
-        BOOST_CHECK_EQUAL(dec, array_element.first.data());
-    }
+    BOOST_CHECK_EQUAL(enc, array_element.second.data());
+    BOOST_CHECK_EQUAL(dec, array_element.first.data());
+}
 
 BOOST_DATA_TEST_CASE(base58_single_range_encode, base_data("base_58"), array_element) {
     std::string out = encode<base<58>>(array_element.first);
@@ -280,13 +282,13 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(base64_codec_data_driven_test_suite)
 
-    BOOST_DATA_TEST_CASE(base64_single_range_adaptor_encode, base_data("base_64"), array_element) {
-        std::string enc = array_element.first | adaptors::encoded<base<64>>;
-        std::string dec = array_element.second.data() | adaptors::decoded<base<64>>;
+BOOST_DATA_TEST_CASE(base64_single_range_adaptor_encode, base_data("base_64"), array_element) {
+    std::string enc = array_element.first | adaptors::encoded<base<64>>;
+    std::string dec = array_element.second.data() | adaptors::decoded<base<64>>;
 
-        BOOST_CHECK_EQUAL(enc, array_element.second.data());
-        BOOST_CHECK_EQUAL(dec, array_element.first.data());
-    }
+    BOOST_CHECK_EQUAL(enc, array_element.second.data());
+    BOOST_CHECK_EQUAL(dec, array_element.first.data());
+}
 
 BOOST_DATA_TEST_CASE(base64_single_range_encode, base_data("base_64"), array_element) {
     std::string out = encode<base<64>>(array_element.first);
@@ -379,7 +381,7 @@ BOOST_DATA_TEST_CASE(base64_alias_decode_failure, base_data("base_invalid"), arr
 BOOST_AUTO_TEST_SUITE_END()
 
 template<std::size_t Size, typename Integer>
-static inline typename boost::uint_t<Size>::exact extract_uint_t(Integer v, std::size_t position) {
+static BOOST_FORCEINLINE typename boost::uint_t<Size>::exact extract_uint_t(Integer v, std::size_t position) {
     return static_cast<typename boost::uint_t<Size>::exact>(v >> (((~position) & (sizeof(Integer) - 1)) << 3));
 }
 
@@ -442,6 +444,61 @@ BOOST_DATA_TEST_CASE(base64_single_range_random_encode_decode,
     arr[arr.size() - 1] = std::max((std::uint8_t)1, arr[arr.size() - 1]);    // Compliant with RFC 4648
     std::vector<std::uint8_t> enc = encode<base<64>>(arr);
     std::vector<std::uint8_t> out = decode<base<64>>(enc);
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), arr.begin(), arr.end());
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(base_codec_extern_random_data_test_suite)
+
+BOOST_DATA_TEST_CASE(base32_single_range_random_encode_decode,
+                     boost::unit_test::data::random(std::numeric_limits<std::uintmax_t>::min(),
+                                                    std::numeric_limits<std::uintmax_t>::max()) ^
+                         boost::unit_test::data::xrange(std::numeric_limits<std::uint8_t>::max()),
+                     random_sample, index) {
+    std::array<std::uint8_t, sizeof(decltype(random_sample))> out, arr = to_byte_array(random_sample);
+    arr[arr.size() - 1] = std::max((std::uint8_t)1, arr[arr.size() - 1]);    // Compliant with RFC 4648
+
+    std::size_t len = 256;
+    char *res = (char *)malloc(len * sizeof(char *));
+
+    ::nil_crypto3_base32_encode(arr.begin(), std::distance(arr.begin(), arr.end()), res, &len);
+    ::nil_crypto3_base32_decode(res, len, out.begin(), &len);
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), arr.begin(), arr.end());
+}
+
+BOOST_DATA_TEST_CASE(base58_single_range_random_encode_decode,
+                     boost::unit_test::data::random(std::numeric_limits<std::uintmax_t>::min(),
+                                                    std::numeric_limits<std::uintmax_t>::max()) ^
+                         boost::unit_test::data::xrange(std::numeric_limits<std::uint8_t>::max()),
+                     random_sample, index) {
+    std::array<std::uint8_t, sizeof(decltype(random_sample))> out, arr = to_byte_array(random_sample);
+    arr[arr.size() - 1] = std::max((std::uint8_t)1, arr[arr.size() - 1]);    // Compliant with RFC 4648
+
+    std::size_t len = 256;
+    char *res = (char *)malloc(len * sizeof(char *));
+
+    ::nil_crypto3_base58_encode(arr.begin(), std::distance(arr.begin(), arr.end()), res, &len);
+    ::nil_crypto3_base58_decode(res, len, out.begin(), &len);
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), arr.begin(), arr.end());
+}
+
+BOOST_DATA_TEST_CASE(base64_single_range_random_encode_decode,
+                     boost::unit_test::data::random(std::numeric_limits<std::uintmax_t>::min(),
+                                                    std::numeric_limits<std::uintmax_t>::max()) ^
+                         boost::unit_test::data::xrange(std::numeric_limits<std::uint8_t>::max()),
+                     random_sample, index) {
+    std::array<std::uint8_t, sizeof(decltype(random_sample))> out, arr = to_byte_array(random_sample);
+    arr[arr.size() - 1] = std::max((std::uint8_t)1, arr[arr.size() - 1]);    // Compliant with RFC 4648
+
+    std::size_t len = 256;
+    char *res = (char *)malloc(len * sizeof(char *));
+
+    ::nil_crypto3_base64_encode(arr.begin(), std::distance(arr.begin(), arr.end()), res, &len);
+    ::nil_crypto3_base64_decode(res, len, out.begin(), &len);
 
     BOOST_CHECK_EQUAL_COLLECTIONS(out.begin(), out.end(), arr.begin(), arr.end());
 }
