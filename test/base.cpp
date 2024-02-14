@@ -61,7 +61,7 @@ namespace boost {
     }        // namespace test_tools
 }    // namespace boost
 
-const char *test_data = "data/base.json";
+std::string test_data = std::string(TEST_DATA_DIR) + R"(base.json)";
 
 boost::property_tree::ptree base_data(const char *child_name) {
     boost::property_tree::ptree root_data;

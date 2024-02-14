@@ -59,7 +59,7 @@ namespace boost {
     }        // namespace test_tools
 }
 
-const char *test_data = "data/hex.json";
+std::string test_data = std::string(TEST_DATA_DIR) + R"(hex.json)";
 
 boost::property_tree::ptree mode_data(const char *mode) {
     boost::property_tree::ptree root_data;
