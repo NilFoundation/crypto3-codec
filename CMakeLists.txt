@@ -40,7 +40,6 @@ if((NOT Boost_CONTAINER_FOUND OR NOT Boost_FOUND) AND NOT CMAKE_CROSSCOMPILING)
     cm_find_package(Boost COMPONENTS REQUIRED container)
 endif()
 
-option(BUILD_WITH_CCACHE "Build with ccache usage" TRUE)
 option(BUILD_TESTS "Build unit tests" FALSE)
 option(CRYPTO3_CODEC_BASE58 "Build unit tests" TRUE)
 
