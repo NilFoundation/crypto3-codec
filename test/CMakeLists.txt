@@ -13,6 +13,8 @@ if(NOT Boost_UNIT_TEST_FRAMEWORK_FOUND)
 endif()
 
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
+                       ${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}_extern
+
                        ${CMAKE_WORKSPACE_NAME}::multiprecision
 
                        ${Boost_LIBRARIES})
@@ -35,8 +37,10 @@ macro(define_codec_test name)
     get_target_property(target_type Boost::unit_test_framework TYPE)
     if(target_type STREQUAL "SHARED_LIB")
         target_compile_definitions(codec_${name}_test PRIVATE BOOST_TEST_DYN_LINK)
-    elseif(target_type STREQUAL "STATIC_LIB")
-
+    endif()
+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/data/${name}.json")
+        file(COPY "${CMAKE_CURRENT_LIST_DIR}/data/${name}.json"
+             DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/data")
     endif()
 endmacro()
 
